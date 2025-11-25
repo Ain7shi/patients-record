@@ -7,47 +7,6 @@ import { useRouter } from "next/navigation";
 const Login = () => {
     const router = useRouter();
 
-    // const handleSignin = async (e) => {
-    //     e.preventDefault();
-    //     console.log("Login submitted");
-
-    //     const email = e.target.employeeEmail.value;
-    //     const password = e.target.password.value;
-
-    //     const { data, error } = await client.auth.signInWithPassword({
-    //         email,
-    //         password,
-    //     });
-
-    //     console.log("Login response:", data);
-    //     console.log("Metadata:", data.user?.user_metadata);
-
-    //     const role = data.user?.user_metadata?.type;
-    //     console.log("Detected role:", role);
-
-    //     // try redirecting
-    //     if (role === "admin") {
-    //         console.log("Redirecting to /admin");
-    //         router.push("/admin");
-    //         return;
-    //     }
-
-    //     if (role === "doctor") {
-    //         console.log("Redirecting to /dashboard");
-    //         router.push("/dashboard");
-    //         return;
-    //     }
-
-    //     if (role === "nurse") {
-    //         console.log("Redirecting to /nurse");
-    //         router.push("/nurse");
-    //         return;
-    //     }
-
-    //     console.log("No role detected, fallback redirect");
-    //     router.push("/dashboard");
-    // };
-
     const handleSignin = async (e) => {
         e.preventDefault();
         console.log("Login submitted");

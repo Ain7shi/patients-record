@@ -92,9 +92,18 @@ export default function NurseDashboard() {
   return (
     <div className="min-h-screen bg-gray-100 p-8 text-black">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-6">Patient Records</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Patient Records</h1>
+          <button
+            onClick={() => client.auth.signOut()}
+            className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
+          >
+            Sign Out
+          </button>
+        </div>
 
-        {/* 🔵 SEARCH + FILTERS UI */}
+
+        {/*SEARCH + FILTERS UI */}
         <div className="flex flex-col md:flex-row gap-3 mb-6">
 
           {/* Search by Name */}
@@ -146,7 +155,7 @@ export default function NurseDashboard() {
               <div className="flex flex-col gap-1">
                 <p className="font-semibold">Patient Name: {rec.patientName}</p>
 
-                {/* 🔵 NEW DISPLAY FIELDS */}
+                {/*NEW DISPLAY FIELDS */}
                 <p className="text-sm text-gray-600">
                   Type: {rec.patientType || "N/A"}
                 </p>
@@ -232,15 +241,6 @@ export default function NurseDashboard() {
           </div>
         )}
 
-        {/* Sign out */}
-        <div className="mt-6">
-          <button
-            onClick={() => client.auth.signOut()}
-            className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
-          >
-            Sign Out
-          </button>
-        </div>
       </div>
     </div>
   );
