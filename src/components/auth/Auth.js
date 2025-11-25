@@ -10,12 +10,12 @@ const Auth = () => {
     return(
         <div>
             <div>
-                <button onClick={() => setShowLogin(true)}>Login</button><button onClick={() => setShowLogin(false)}>Sign Up</button>
-                {/* <Login /> */}
+                {/* <button onClick={() => setShowLogin(true)}>Login</button><button onClick={() => setShowLogin(false)}>Sign Up</button> */}
+                <Login />
             </div>
-            <div>
+            {/* <div>
                 {showLogin ? <Login />: <Signup />}
-            </div>
+            </div> */}
         
         </div>
     );
