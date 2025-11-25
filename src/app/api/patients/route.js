@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import client from "@/api/client";
 
+// app/api/patients/route.js
 export async function GET(req) {
   const accessToken = req.headers.get("authorization")?.split(" ")[1];
   const { data: { user } } = await client.auth.getUser(accessToken);
@@ -9,11 +10,15 @@ export async function GET(req) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Get records for this doctor or nurse
-  const { data, error } = await client
-    .from("patient_records")
-    .select("*")
-    .or(`doctor_id.eq.${user.id},nurse_id.eq.${user.id}`);
+  let query = client.from("patient_records").select("*");
+
+  // Doctors: only their patients
+  if (user.user_metadata.type === "doctor") {
+    query = query.eq("doctor_id", user.id);
+  }
+  // Nurses: no filter, see all patients
+
+  const { data, error } = await query;
 
   if (error) {
     console.error(error);

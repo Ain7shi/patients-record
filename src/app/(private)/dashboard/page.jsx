@@ -10,25 +10,11 @@ export default function Dashboard() {
     patientName: "",
     patientChart: "",
     patientMedication: "",
-    patientHistory:"",
+    patientHistory: "",
   });
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch all records
-  // const fetchRecords = async () => {
-  //   const res = await fetch("/api/patients");
-  //   if (res.ok) {
-  //     const data = await res.json();
-  //     setRecords(data);
-  //   } else {
-  //     console.log("Failed to fetch records");
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchRecords();
-  // }, []);
   const fetchRecords = async () => {
     const { data: session } = await client.auth.getSession();
     const token = session?.session?.access_token;
@@ -40,7 +26,7 @@ export default function Dashboard() {
 
     const res = await fetch("/api/patients", {
       headers: {
-        Authorization: `Bearer ${token}`,  // 👈 attach token here
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -51,53 +37,30 @@ export default function Dashboard() {
       console.log("Failed to fetch records");
     }
   };
+
   useEffect(() => {
     fetchRecords();
   }, []);
 
-
-  // Create record 
-  // const createRecord = async () => {
-  //   setLoading(true);
-  //   const res = await fetch("/api/patients", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify(newRecord),
-  //   });
-
-  //   if (res.ok) {
-  //     await fetchRecords();
-  //     setNewRecord({
-  //       patientName: "",
-  //       patientChart: "",
-  //       patientMedication: "",
-  //       patientHistory: "",
-  //     });
-  //   } else {
-  //     console.error("Failed to create record");
-  //   }
-
-  //   setLoading(false);
-  // };
-  const { user } = useAuth(); 
+  const { user } = useAuth();
 
   const createRecord = async () => {
     setLoading(true);
     const payload = {
       ...newRecord,
-      doctor_id: user.id, 
+      doctor_id: user.id,
     };
 
-  const token = (await client.auth.getSession()).data.session?.access_token;
+    const token = (await client.auth.getSession()).data.session?.access_token;
 
-  const res = await fetch("/api/patients", {
-    method: "POST",
-    headers: { 
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // 👈 required to identify user
-    },
-    body: JSON.stringify(payload),
-  });
+    const res = await fetch("/api/patients", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
     if (res.ok) {
       await fetchRecords();
@@ -114,7 +77,6 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  // Update
   const updateRecord = async (id) => {
     setLoading(true);
     const res = await fetch(`/api/patients/${id}`, {
@@ -132,7 +94,6 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  // Delete
   const deleteRecord = async (id) => {
     const res = await fetch(`/api/patients/${id}`, { method: "DELETE" });
     if (res.ok) fetchRecords();
@@ -169,10 +130,7 @@ export default function Dashboard() {
             placeholder="Patient Medication"
             value={newRecord.patientMedication}
             onChange={(e) =>
-              setNewRecord({
-                ...newRecord,
-                patientMedication: e.target.value,
-              })
+              setNewRecord({ ...newRecord, patientMedication: e.target.value })
             }
           />
           <input
@@ -181,10 +139,7 @@ export default function Dashboard() {
             placeholder="Patient Medication History"
             value={newRecord.patientHistory}
             onChange={(e) =>
-              setNewRecord({
-                ...newRecord,
-                patientHistory: e.target.value,
-              })
+              setNewRecord({ ...newRecord, patientHistory: e.target.value })
             }
           />
 
@@ -212,16 +167,20 @@ export default function Dashboard() {
           {records.map((rec) => (
             <li
               key={rec.id}
-              className="flex justify-between items-center border-b pb-2"
+              className="flex justify-between items-start border-b pb-2"
             >
-              <div>
-                <p className="font-semibold">{rec.patientName}</p>
-                <p className="text-sm text-gray-600">{rec.patientChart}</p>
-                <p className="text-sm text-gray-600">
-                  {rec.patientMedication}
+              <div className="flex flex-col gap-1">
+                <p className="font-semibold">Patient Name: {rec.patientName}</p>
+                <p className="text-sm text-gray-600">Patient Chart: {rec.patientChart}</p>
+                <p className="text-sm text-gray-600">Patient Medication: {rec.patientMedication}</p>
+                <p className="text-sm text-gray-600">Patient History: {rec.patientHistory}</p>
+                
+                {/* Nurse comments */}
+                <p className="text-sm text-gray-500 italic">
+                  Nurse Comments: {rec.nurseComment ? rec.nurseComment : "No comments yet"}
                 </p>
-                <p className="text-sm text-gray-600">{rec.patientHistory}</p>
               </div>
+              
               <div className="flex gap-2">
                 <button
                   onClick={() => {
@@ -247,7 +206,6 @@ export default function Dashboard() {
             </li>
           ))}
         </ul>
-
         {/* Sign out */}
         <div className="mt-6">
           <button

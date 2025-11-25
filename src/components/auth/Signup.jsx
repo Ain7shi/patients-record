@@ -79,6 +79,7 @@ const Signup = () => {
                                 </label>
                                 <select className={inputClass}>
                                     <option value="">Select employee type</option>
+                                    <option value="admin">Admin</option>
                                     <option value="nurse">Nurse</option>
                                     <option value="doctor">Doctor</option>
                                 </select>
