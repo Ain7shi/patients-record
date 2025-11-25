@@ -15,6 +15,22 @@ export async function POST(req) {
       user_metadata: { status }, // update the custom status
     });
 
+    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/mail/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: user.email,
+        subject: disable
+          ? "Your Account Has Been Deactivated"
+          : "Your Account Has Been Reactivated",
+        html: `
+          <p>Hello ${user.user_metadata?.name},</p>
+          <p>Your account has been <b>${disable ? "deactivated" : "reactivated"}</b> by the admin.</p>
+          <p>If you believe this is a mistake, please contact support.</p>
+        `,
+      }),
+    });
+
     if (error) {
       console.error("Toggle error:", error);
       return NextResponse.json({ error: "Toggle failed" }, { status: 500 });

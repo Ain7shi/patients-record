@@ -8,6 +8,12 @@ export default function NurseDashboard() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState({ open: false, recordId: null, comment: "" });
+
+  // 🔵 NEW STATES FOR SEARCH + FILTERS
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState(""); // "Inpatient" | "Outpatient"
+  const [filterRoom, setFilterRoom] = useState("");
+
   const { user } = useAuth();
 
   const fetchRecords = async () => {
@@ -39,9 +45,8 @@ export default function NurseDashboard() {
 
     if (!token) return;
 
-    const method = modal.isEdit ? "PATCH" : "PATCH";
     const res = await fetch(`/api/patients/${modal.recordId}`, {
-      method,
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -70,33 +75,94 @@ export default function NurseDashboard() {
     });
 
     if (res.ok) {
-      fetchRecords(); // refresh list
+      fetchRecords();
     } else {
       console.error("Failed to delete comment");
     }
   };
+
+  // 🔵 FILTERED DATA LOGIC
+  const filteredRecords = records
+    .filter((rec) =>
+      rec.patientName?.toLowerCase().includes(search.toLowerCase())
+    )
+    .filter((rec) => (filterType ? rec.patientType === filterType : true))
+    .filter((rec) => (filterRoom ? rec.roomNumber == filterRoom : true));
 
   return (
     <div className="min-h-screen bg-gray-100 p-8 text-black">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
         <h1 className="text-2xl font-bold mb-6">Patient Records</h1>
 
+        {/* 🔵 SEARCH + FILTERS UI */}
+        <div className="flex flex-col md:flex-row gap-3 mb-6">
+
+          {/* Search by Name */}
+          <input
+            type="text"
+            placeholder="Search by patient name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border p-2 rounded w-full md:w-1/3"
+          />
+
+          {/* Inpatient / Outpatient dropdown */}
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="border p-2 rounded w-full md:w-1/3"
+          >
+            <option value="">All Types</option>
+            <option value="Inpatient">Inpatient</option>
+            <option value="Outpatient">Outpatient</option>
+          </select>
+
+          {/* Room number dropdown */}
+          <select
+            value={filterRoom}
+            onChange={(e) => setFilterRoom(e.target.value)}
+            className="border p-2 rounded w-full md:w-1/3"
+          >
+            <option value="">All Rooms</option>
+
+            {[...new Set(records.map((r) => r.roomNumber))].map(
+              (room) =>
+                room && (
+                  <option key={room} value={room}>
+                    Room {room}
+                  </option>
+                )
+            )}
+          </select>
+        </div>
+
         {/* Records list */}
         <ul className="space-y-3">
-          {records.map((rec) => (
+          {filteredRecords.map((rec) => (
             <li
               key={rec.id}
               className="flex justify-between items-start border-b pb-2"
             >
               <div className="flex flex-col gap-1">
                 <p className="font-semibold">Patient Name: {rec.patientName}</p>
+
+                {/* 🔵 NEW DISPLAY FIELDS */}
+                <p className="text-sm text-gray-600">
+                  Type: {rec.patientType || "N/A"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Room Number: {rec.roomNumber || "None"}
+                </p>
+
                 <p className="text-sm text-gray-600">Patient Chart: {rec.patientChart}</p>
                 <p className="text-sm text-gray-600">Patient Medication: {rec.patientMedication}</p>
                 <p className="text-sm text-gray-600">Patient History: {rec.patientHistory}</p>
+
                 <p className="text-sm text-gray-500 italic">
                   Nurse Comments: {rec.nurseComment || "No comment yet"}
                 </p>
               </div>
+
               <div className="flex flex-col gap-1">
                 <button
                   onClick={() =>
@@ -106,15 +172,22 @@ export default function NurseDashboard() {
                 >
                   Add Comment
                 </button>
+
                 <button
                   onClick={() =>
-                    setModal({ open: true, recordId: rec.id, comment: rec.nurseComment || "", isEdit: true })
+                    setModal({
+                      open: true,
+                      recordId: rec.id,
+                      comment: rec.nurseComment || "",
+                      isEdit: true,
+                    })
                   }
                   disabled={!rec.nurseComment}
                   className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 disabled:opacity-50"
                 >
                   Edit Comment
                 </button>
+
                 <button
                   onClick={() => deleteComment(rec.id)}
                   disabled={!rec.nurseComment}
@@ -141,7 +214,9 @@ export default function NurseDashboard() {
               <div className="flex justify-end gap-2">
                 <button
                   className="px-4 py-2 border rounded"
-                  onClick={() => setModal({ open: false, recordId: null, comment: "", isEdit: false })}
+                  onClick={() =>
+                    setModal({ open: false, recordId: null, comment: "", isEdit: false })
+                  }
                 >
                   Cancel
                 </button>
