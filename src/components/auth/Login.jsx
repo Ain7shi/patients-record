@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 const Login = () => {
     const router = useRouter();
 
+    const [showPassword, setShowPassword] = React.useState(false);
+
     const handleSignin = async (e) => {
         e.preventDefault();
         console.log("Login submitted");
@@ -74,7 +76,7 @@ const Login = () => {
                 <div className="bg-white rounded-2xl shadow-2xl flex flex-row login ">
                     <div className="w-100 p-5">
                         <div className="text-left font-bold">  
-                        <span className="text-red-500">Group</span>3
+                        <span className="text-red-500">Web</span>Dev
                         </div>  
                         <div className="items-center justify-items-center py-10">
                         <h2 className="text-2xl font-bold mb-2">Sign in</h2>
@@ -87,8 +89,22 @@ const Login = () => {
                         </div>
                         <br></br>
                         <label className="password">Password</label>
-                        <div>
-                            <input type="password" name="password" placeholder="Password" className={inputClass} required></input>
+                        <div className="relative w-64">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                placeholder="Password"
+                                className={inputClass}
+                                required
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-red-500 font-medium"
+                            >
+                                {showPassword ? "Hide" : "Show"}
+                            </button>
                         </div>
                         <br></br>
                         <button
