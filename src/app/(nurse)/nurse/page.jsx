@@ -9,10 +9,12 @@ export default function NurseDashboard() {
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState({ open: false, recordId: null, comment: "" });
 
-  // 🔵 NEW STATES FOR SEARCH + FILTERS
+  // ✅ SEARCH ONLY (filters removed)
   const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState(""); // "Inpatient" | "Outpatient"
-  const [filterRoom, setFilterRoom] = useState("");
+
+  // ✅ PAGINATION
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   const { user } = useAuth();
 
@@ -81,19 +83,32 @@ export default function NurseDashboard() {
     }
   };
 
-  // 🔵 FILTERED DATA LOGIC
-  const filteredRecords = records
-    .filter((rec) =>
-      rec.patientName?.toLowerCase().includes(search.toLowerCase())
-    )
-    .filter((rec) => (filterType ? rec.patientType === filterType : true))
-    .filter((rec) => (filterRoom ? rec.roomNumber == filterRoom : true));
+  // ✅ SEARCH FILTER ONLY
+  const filteredRecords = records.filter((rec) =>
+    rec.patientName?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // ✅ PAGINATION CALCULATION
+  const totalPages = Math.ceil(filteredRecords.length / recordsPerPage);
+  const startIndex = (currentPage - 1) * recordsPerPage;
+  const paginatedRecords = filteredRecords.slice(
+    startIndex,
+    startIndex + recordsPerPage
+  );
 
   return (
     <div className="min-h-screen bg-gray-100 p-8 text-black">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
+
+        {/* ✅ HEADER WITH DISPLAY NAME */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Patient Records</h1>
+          <div>
+            <h1 className="text-2xl font-bold">Patient Records</h1>
+            <p className="text-sm text-gray-600">
+              Logged in as: <strong>{user?.user_metadata?.name || user?.email}</strong>
+            </p>
+          </div>
+
           <button
             onClick={() => client.auth.signOut()}
             className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
@@ -102,71 +117,34 @@ export default function NurseDashboard() {
           </button>
         </div>
 
-
-        {/*SEARCH + FILTERS UI */}
-        <div className="flex flex-col md:flex-row gap-3 mb-6">
-
-          {/* Search by Name */}
+        {/* ✅ SEARCH BAR ONLY */}
+        <div className="mb-6">
           <input
             type="text"
             placeholder="Search by patient name..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border p-2 rounded w-full md:w-1/3"
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1); // reset page on search
+            }}
+            className="border p-2 rounded w-full"
           />
-
-          {/* Inpatient / Outpatient dropdown */}
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="border p-2 rounded w-full md:w-1/3"
-          >
-            <option value="">All Types</option>
-            <option value="Inpatient">Inpatient</option>
-            <option value="Outpatient">Outpatient</option>
-          </select>
-
-          {/* Room number dropdown */}
-          <select
-            value={filterRoom}
-            onChange={(e) => setFilterRoom(e.target.value)}
-            className="border p-2 rounded w-full md:w-1/3"
-          >
-            <option value="">All Rooms</option>
-
-            {[...new Set(records.map((r) => r.roomNumber))].map(
-              (room) =>
-                room && (
-                  <option key={room} value={room}>
-                    Room {room}
-                  </option>
-                )
-            )}
-          </select>
         </div>
 
-        {/* Records list */}
+        {/* ✅ RECORDS LIST (PAGINATED) */}
         <ul className="space-y-3">
-          {filteredRecords.map((rec) => (
+          {paginatedRecords.map((rec) => (
             <li
               key={rec.id}
               className="flex justify-between items-start border-b pb-2"
             >
               <div className="flex flex-col gap-1">
                 <p className="font-semibold">Patient Name: {rec.patientName}</p>
-
-                {/*NEW DISPLAY FIELDS */}
-                <p className="text-sm text-gray-600">
-                  Type: {rec.patientType || "N/A"}
-                </p>
-                <p className="text-sm text-gray-600">
-                  Room Number: {rec.roomNumber || "None"}
-                </p>
-
-                <p className="text-sm text-gray-600">Patient Chart: {rec.patientChart}</p>
-                <p className="text-sm text-gray-600">Patient Medication: {rec.patientMedication}</p>
-                <p className="text-sm text-gray-600">Patient History: {rec.patientHistory}</p>
-
+                <p className="text-sm text-gray-600">Type: {rec.patientType || "N/A"}</p>
+                <p className="text-sm text-gray-600">Room: {rec.roomNumber || "None"}</p>
+                <p className="text-sm text-gray-600">Chart: {rec.patientChart}</p>
+                <p className="text-sm text-gray-600">Medication: {rec.patientMedication}</p>
+                <p className="text-sm text-gray-600">History: {rec.patientHistory}</p>
                 <p className="text-sm text-gray-500 italic">
                   Nurse Comments: {rec.nurseComment || "No comment yet"}
                 </p>
@@ -209,22 +187,58 @@ export default function NurseDashboard() {
           ))}
         </ul>
 
-        {/* Modal */}
+        {/* ✅ PAGINATION CONTROLS */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4 mt-6">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 border rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
+
+            <span className="text-sm font-medium">
+              Page {currentPage} of {totalPages}
+            </span>
+
+            <button
+              onClick={() =>
+                setCurrentPage((p) => Math.min(p + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 border rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
+
+        {/* ✅ MODAL */}
         {modal.open && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
-              <h2 className="text-lg font-bold mb-4">{modal.isEdit ? "Edit" : "Add"} Comment</h2>
+              <h2 className="text-lg font-bold mb-4">
+                {modal.isEdit ? "Edit" : "Add"} Comment
+              </h2>
               <textarea
                 className="border p-2 rounded w-full mb-4"
                 rows={4}
                 value={modal.comment}
-                onChange={(e) => setModal({ ...modal, comment: e.target.value })}
+                onChange={(e) =>
+                  setModal({ ...modal, comment: e.target.value })
+                }
               />
               <div className="flex justify-end gap-2">
                 <button
                   className="px-4 py-2 border rounded"
                   onClick={() =>
-                    setModal({ open: false, recordId: null, comment: "", isEdit: false })
+                    setModal({
+                      open: false,
+                      recordId: null,
+                      comment: "",
+                      isEdit: false,
+                    })
                   }
                 >
                   Cancel
