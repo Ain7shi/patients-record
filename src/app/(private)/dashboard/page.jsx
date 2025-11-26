@@ -139,11 +139,12 @@ export default function Dashboard() {
               </h1>
               <p className="text-gray-600">
                  Welcome, Doctor {user?.user_metadata?.name || user?.email}
-              </p>
-              &nsbp
+             
+              
               <span className="ml-2 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                   Doctor
                 </span>
+                </p>
             </div>
             <button
               onClick={() => client.auth.signOut()}
